@@ -8,6 +8,9 @@ import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Interpolator;
+
+import java.lang.reflect.Field;
 
 /**
  * A ViewPager that auto-scrolls, and supports infinite scroll.
@@ -40,14 +43,34 @@ public class LoopingViewPager extends ViewPager {
     private IndicatorPageChangeListener indicatorPageChangeListener;
 
     private int scrollState = SCROLL_STATE_IDLE;
-
+    private ScrollerCustomDuration mScroller = null;
     public LoopingViewPager(Context context) {
         super(context);
         init();
     }
+    private void postInitViewPager() {
+        try {
+            Field scroller = ViewPager.class.getDeclaredField("mScroller");
+            scroller.setAccessible(true);
+            Field interpolator = ViewPager.class.getDeclaredField("sInterpolator");
+            interpolator.setAccessible(true);
 
+            mScroller = new ScrollerCustomDuration(getContext(),
+                    (Interpolator) interpolator.get(null));
+            scroller.set(this, mScroller);
+        } catch (Exception e) {
+        }
+    }
+
+    /**
+     * Set the factor by which the duration will change
+     */
+    public void setScrollDurationFactor(double scrollFactor) {
+        mScroller.setScrollDurationFactor(scrollFactor);
+    }
     public LoopingViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
+        postInitViewPager();
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.LoopingViewPager, 0, 0);
         try {
             isInfinite = a.getBoolean(R.styleable.LoopingViewPager_isInfinite, false);

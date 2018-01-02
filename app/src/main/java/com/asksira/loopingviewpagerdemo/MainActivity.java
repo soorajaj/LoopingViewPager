@@ -35,6 +35,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         adapter = new DemoInfiniteAdapter(this, createDummyItems(), true);
+        viewPager.setScrollDurationFactor(10);
         viewPager.setAdapter(adapter);
 
         //Custom bind indicator
